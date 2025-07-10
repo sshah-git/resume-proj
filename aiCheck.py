@@ -10,7 +10,7 @@ import re
 import datetime
 from sentence_transformers import SentenceTransformer
 
-model = SentenceTransformer('all-MiniLM-L6-v2')
+model = SentenceTransformer('paraphrase-MiniLM-L3-v2')
 app = FastAPI()
 
 #Allow frontend JS to call backend
