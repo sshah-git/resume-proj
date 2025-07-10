@@ -262,3 +262,7 @@ def delete_job(job_id: int):
 from fastapi.staticfiles import StaticFiles
 
 app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))  # Use 8000 locally, Render’s port in deployment
+    uvicorn.run("aiCheck:app", host="0.0.0.0", port=port)
