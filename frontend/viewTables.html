@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22256%22 height=%22256%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2250%22 fill=%22%230058ff%22></rect><path fill=%22%23fff%22 d=%22M72.15 21.33L72.15 21.33Q74.49 22.50 74.90 25.02Q75.30 27.54 73.59 29.61L73.59 29.61Q72.42 31.23 70.58 31.41Q68.73 31.59 66.84 30.69L66.84 30.69Q64.68 29.70 62.30 29.16Q59.91 28.62 57.30 28.62L57.30 28.62Q52.44 28.62 48.62 30.15Q44.79 31.68 42.09 34.52Q39.39 37.35 38.00 41.22Q36.60 45.09 36.60 49.77L36.60 49.77Q36.60 55.26 38.18 59.31Q39.75 63.36 42.54 66.06Q45.33 68.76 49.11 70.07Q52.89 71.37 57.30 71.37L57.30 71.37Q59.73 71.37 62.16 70.92Q64.59 70.47 66.84 69.30L66.84 69.30Q68.73 68.40 70.58 68.67Q72.42 68.94 73.68 70.56L73.68 70.56Q75.48 72.81 74.99 75.20Q74.49 77.58 72.24 78.66L72.24 78.66Q69.90 79.83 67.43 80.60Q64.95 81.36 62.43 81.77Q59.91 82.17 57.30 82.17L57.30 82.17Q50.82 82.17 45.02 80.10Q39.21 78.03 34.67 73.98Q30.12 69.93 27.51 63.86Q24.90 57.78 24.90 49.77L24.90 49.77Q24.90 42.84 27.29 36.99Q29.67 31.14 34.04 26.87Q38.40 22.59 44.34 20.21Q50.28 17.82 57.30 17.82L57.30 17.82Q61.26 17.82 65.04 18.72Q68.82 19.62 72.15 21.33Z%22></path></svg>" />
+<meta charset="UTF-8">
+<meta http-equiv=“Pragma” content=”no-cache”>
+<meta http-equiv=“Expires” content=”-1″>
+<meta http-equiv=“CACHE-CONTROL” content=”NO-CACHE”>
+<!-- CSS Stylesheets -->
+<link rel="stylesheet" href="css/master.css">
+
+<header>
+<h class="title"> Resume Scanner with AI</h>
+
+<button id="scoreRes" class="viewTables">Score Resumes</button>
+<button id="profBtn" class="viewProfile">View/Edit Profile</button>
+<br><br><br><br>
+<script>
+function closeEditModal() {
+  document.getElementById("editModal").style.display = "none";
+}
+function openActionModal() {
+  document.getElementById("actionModal").style.display = "block";
+}
+function closeActionModal() {
+  document.getElementById("actionModal").style.display = "none";
+  document.getElementById("editModal").style.display = "block";
+}
+
+window.onload = function () {
+const params = new URLSearchParams(window.location.search);
+
+const user_id=params.get("user_id");
+  if (!user_id) {
+    alert("You must be logged in.");
+    return;
+  }
+ document.getElementById("scoreRes").addEventListener("click", () => {
+    window.location.href = `welcome.html?user_id=${user_id}`;
+  });
+
+ document.getElementById("profBtn").addEventListener("click", () => {
+    window.location.href = `dashboard.html?user_id=${user_id}`;
+ });
+ let selectedJob = null;
+
+document.getElementById("editJobsBtn").addEventListener("click", async () => {
+  const res = await fetch(`http://localhost:8000/user-jobs?user_id=${user_id}`);
+  const jobs = await res.json();
+
+  if (jobs.length === 0) {
+    alert("No jobs to edit.");
+    return;
+  }
+
+  const jobListDiv = document.getElementById("editJobList");
+  jobListDiv.innerHTML = "";
+  jobs.forEach(job => {
+    const btn = document.createElement("button");
+    btn.textContent = job.job_name;
+    btn.style.backgroundColor = "#40597a";
+    btn.style.display = "block";
+    btn.style.color = "white";
+    btn.style.borderRadius = "5px";
+    btn.style.cursor = "pointer";
+    btn.style.margin = "10px auto";
+    btn.onclick = () => {
+      selectedJob = job;
+      document.getElementById("selectedJobName").textContent = `Edit "${job.job_name}"`;
+      closeEditModal();
+      openActionModal();
+    };
+    jobListDiv.appendChild(btn);
+  });
+
+  document.getElementById("editModal").style.display = "block";
+});
+
+
+document.getElementById("renameBtn").addEventListener("click", async () => {
+  const newName = prompt("Enter new job name:");
+  if (newName && newName.trim()) {
+    const res = await fetch(`http://localhost:8000/rename-job/${selectedJob.job_id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newName.trim())
+    });
+    if (res.ok) {
+      alert("Job renamed!");
+      location.reload();
+    } else {
+      alert("Failed to rename job.");
+    }
+  }
+});
+
+document.getElementById("deleteBtn").addEventListener("click", async () => {
+  const confirmDelete = confirm(`Are you sure you want to delete "${selectedJob.job_name}"?`);
+  if (confirmDelete) {
+    const res = await fetch(`http://localhost:8000/delete-job/${selectedJob.job_id}`, {
+      method: "DELETE"
+    });
+    if (res.ok) {
+      alert("Job deleted!");
+      location.reload();
+    } else {
+      alert("Failed to delete job.");
+    }
+  }
+});
+
+
+ fetch(`http://localhost:8000/user-jobs?user_id=${user_id}`)
+ .then(res => res.json())
+  .then(jobs => {
+    const container = document.getElementById("jobButtonsContainer");
+    jobs.forEach(job => {
+      const button = document.createElement("button");
+      button.textContent = job.job_name;
+      button.className = "job-button";
+      button.style.margin = "5px";
+      button.onclick = () => { 
+        fetchUserResumes(user_id, job.job_id);
+        const resultsTitle = document.getElementById("resultsTitle");
+        resultsTitle.innerHTML = `Your Resume Scores for <span style="color: #6184b1;">${job.job_name}</span>`;
+      };
+      container.appendChild(button);
+    });
+  });
+};
+</script>
+
+</header>
+<body>
+<br><Br>
+
+<div id="jobButtonsContainer" style="margin-bottom: 30px; text-align: center;">
+<h3 id="selectTitle">Select a Job</h3>
+<button id="editJobsBtn" class="editjobsBtn">Delete/Rename Jobs</button><br><br><br>
+</div>
+
+<!-- Edit Jobs Modal -->
+<div id="editModal" style="display: none; position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); z-index: 1000;">
+  <div style="background: white; padding: 20px; border-radius: 10px;
+    max-width: 400px; margin: 100px auto; text-align: center;">
+    <h3>Select a job to edit</h3>
+    <div id="editJobList" style="margin-top: 15px;"></div>
+    <br>
+    <button onclick="closeEditModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- Action Modal for Rename/Delete -->
+<div id="actionModal" style="display: none; position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); z-index: 1001;">
+  <div style="background: white; padding: 20px; border-radius: 10px;
+    max-width: 400px; margin: 100px auto; text-align: center;">
+    <h3 id="selectedJobName"></h3>
+    <button id="renameBtn">Rename</button>
+    <button id="deleteBtn" style="margin-left: 10px;">Delete</button>
+    <br><br>
+    <button onclick="closeActionModal()">Back</button>
+  </div>
+</div>
+
+
+<h2 id="resultsTitle" style="color: aliceblue;"></h2>
+
+  <table id="resultsTable" border="1" style="border-collapse: collapse;">
+    <thead>
+      <tr>
+        <th>Filename</th>
+        <th>Name</th>
+        <th>Contact</th>
+        <th>Score (%)</th>
+        <th>Uploaded</th>
+        <th>Explanation</th>
+      </tr>
+    </thead>
+    <tbody id="resultsBody"></tbody>
+  </table>
+  
+<script>
+  async function fetchUserResumes(user_id, job_id) {
+      let res = await fetch(`http://localhost:8000/resumes?user_id=${user_id}`);
+      if (job_id != null) {
+        res = await fetch (`http://localhost:8000/resumes-by-job?user_id=${user_id}&job_id=${job_id}`);
+      }
+
+      const data = await res.json();
+      const tbody = document.getElementById("resultsBody");
+      tbody.innerHTML = ""; // clear old rows
+
+      data.forEach((r, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${r.filename}</td>
+          <td>${r.name || "—"}</td>
+          <td>${r.contact || "—"}</td>
+          <td>${r.score}%</td>
+          <td>
+            <span class="short-reason">${getShortReason(r.explanation)}</span>
+            <span class="full-reason" style="display:none">${r.explanation.replace(/\n/g, '<br>')}</span>
+            <button onclick="toggleReason(this)">View More</button>
+          </td>
+          <td>${r.uploaded_at}</td>
+        `;
+        tbody.appendChild(row);
+      });
+      document.getElementById("resultsTable").style.display = "table";
+      document.getElementById("resultsTable").scrollIntoView({ behavior: 'smooth' });
+  }
+
+    function getShortReason(text) {
+      const words = text.split(/\s+/);
+      const first20 = words.slice(0, 20).join(" ");
+      return first20 + (words.length > 20 ? "..." : "");
+    }
+
+    function toggleReason(button) {
+      const short = button.parentElement.querySelector(".short-reason");
+      const full = button.parentElement.querySelector(".full-reason");
+      const expanded = full.style.display === "inline";
+      short.style.display = expanded ? "inline" : "none";
+      full.style.display = expanded ? "none" : "inline";
+      button.textContent = expanded ? "View More" : "View Less";
+    }
+
+  
+</script>
+</body>
+

@@ -1,0 +1,184 @@
+
+  .file-label {
+    display: inline-block;
+    padding: 10px 20px;
+    margin: 5px;
+    background-color: #40597a;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .file-label:hover{
+  background-color:rgb(64, 70, 97);
+  }
+
+.file-label.selected {
+  background-color: grey;
+}
+
+input[type="file"] {
+    display: none;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: 'Lato', sans-serif;
+    background-color: rgb(13, 13, 13);
+}
+
+.upload-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position:relative;
+    margin-top: 10%;
+    gap: 10px;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+}
+
+table {
+  position:absolute;
+  top: 60%;
+  width: 95%;
+  border-collapse: collapse;
+  background-color: rgb(255, 255, 255);
+}
+
+#resultsTable {
+  display: none;
+  background-color: rgb(255, 255, 255);
+}
+.view-more-btn {
+  margin-left: 10px;
+  padding: 2px 6px;
+  font-size: 0.85em;
+  cursor: pointer;
+}
+
+.title{
+  color: aliceblue;
+  font-size: 40px;
+  position: absolute; 
+  left: 20px;
+}
+
+.loginButton{
+  border-radius: 0.75rem;
+  font-size: 15px;
+  padding: 0.7rem 1.5rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  position:absolute;
+  right: 20px;
+}
+.loginContainer{
+    gap: 10px;
+    position: absolute;
+    top: 40%;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+}
+.create{
+  position:absolute;
+  top: 60%;
+  color: aliceblue;
+}
+.viewTables{
+  border-radius: 0.75rem;
+  font-size: 15px;
+  padding: 0.7rem 1.5rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  position:absolute;
+  right: 185px;
+}
+.viewProfile{
+  border-radius: 0.75rem;
+  font-size: 15px;
+  padding: 0.7rem 1.5rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  position:absolute;
+  right: 20px;
+}
+.createAcc{
+    gap: 10px;  
+    position: absolute;
+    top: 40%;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+}
+
+#selectTitle{
+  color: aliceblue;
+  font-size: 30px;
+}
+
+.job-button {
+  background-color: #40597a;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 16px;
+  margin: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.job-button:hover {
+  background-color: rgb(64, 70, 97);
+}
+
+#usersTable {
+  position:absolute;
+  top:30%;
+  left:5%;
+  border: 1px solid #00BFFF;
+  width: fit-content;
+  background-color: #111;
+  color: white;
+}
+
+#usersTable th {
+  text-align: left;
+  padding-left: 10px;
+  padding-right:30px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  background-color: #222;
+  color: #00BFFF;
+}
+
+#usersTable td {
+  padding-left:10px;
+  padding-right: 80px;
+}
+.editjobsBtn {
+  background-color: grey;
+  color: white;
+  padding: 5px 8px;
+  border:none;
+  border-radius: 8px;
+  font-size: 15px;
+  cursor: pointer;
+}
+.editjobsBtn:hover {
+  background-color: #555;
+}

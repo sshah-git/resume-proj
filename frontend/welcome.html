@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22256%22 height=%22256%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2250%22 fill=%22%230058ff%22></rect><path fill=%22%23fff%22 d=%22M72.15 21.33L72.15 21.33Q74.49 22.50 74.90 25.02Q75.30 27.54 73.59 29.61L73.59 29.61Q72.42 31.23 70.58 31.41Q68.73 31.59 66.84 30.69L66.84 30.69Q64.68 29.70 62.30 29.16Q59.91 28.62 57.30 28.62L57.30 28.62Q52.44 28.62 48.62 30.15Q44.79 31.68 42.09 34.52Q39.39 37.35 38.00 41.22Q36.60 45.09 36.60 49.77L36.60 49.77Q36.60 55.26 38.18 59.31Q39.75 63.36 42.54 66.06Q45.33 68.76 49.11 70.07Q52.89 71.37 57.30 71.37L57.30 71.37Q59.73 71.37 62.16 70.92Q64.59 70.47 66.84 69.30L66.84 69.30Q68.73 68.40 70.58 68.67Q72.42 68.94 73.68 70.56L73.68 70.56Q75.48 72.81 74.99 75.20Q74.49 77.58 72.24 78.66L72.24 78.66Q69.90 79.83 67.43 80.60Q64.95 81.36 62.43 81.77Q59.91 82.17 57.30 82.17L57.30 82.17Q50.82 82.17 45.02 80.10Q39.21 78.03 34.67 73.98Q30.12 69.93 27.51 63.86Q24.90 57.78 24.90 49.77L24.90 49.77Q24.90 42.84 27.29 36.99Q29.67 31.14 34.04 26.87Q38.40 22.59 44.34 20.21Q50.28 17.82 57.30 17.82L57.30 17.82Q61.26 17.82 65.04 18.72Q68.82 19.62 72.15 21.33Z%22></path></svg>" />
+<meta charset="UTF-8">
+<meta http-equiv=“Pragma” content=”no-cache”>
+<meta http-equiv=“Expires” content=”-1″>
+<meta http-equiv=“CACHE-CONTROL” content=”NO-CACHE”>
+<!-- CSS Stylesheets -->
+<link rel="stylesheet" href="css/master.css">
+
+<h class="title"> Resume Scanner with AI</h>
+
+<button id="viewTabBtn" class="viewTables">View Scored Resumes</button>
+<button id="profBtn" class="viewProfile">View/Edit Profile</button>
+
+<script>
+window.onload = function () {
+  const user_id = localStorage.getItem("user_id");
+  if (!user_id || user_id == null || user_id == undefined) {
+    alert("You must be logged in.");
+    window.location.href = "login.html";
+    return;
+  }
+
+  document.getElementById("viewTabBtn").addEventListener("click", () => {
+    window.location.href = `viewTables.html?user_id=${user_id}`;
+  });
+
+  document.getElementById("profBtn").addEventListener("click", () => {
+    window.location.href = `dashboard.html?user_id=${user_id}`;
+  });
+
+  markSelected("jd", "jd-label");
+  markSelected("resumes", "resumes-label");
+};
+</script>
+<script>
+
+function markSelected(inputId, labelId) {
+  const input = document.getElementById(inputId);
+  const label = document.getElementById(labelId);
+  input.addEventListener('change', () => {
+    if (input.files.length > 0) {
+      label.classList.add('selected');
+    }
+  });
+}
+
+async function uploadFiles() {
+  let formData = new FormData();
+  const params = new URLSearchParams(window.location.search);
+  const user_Id=params.get("user_id");
+  if (!user_Id) {
+    alert("You must be logged in.");
+    return;
+  }
+  const jobName = document.getElementById("jobname").value;
+  formData.append("user_id", user_Id); 
+  formData.append("job_name", jobName);
+  formData.append("jd", document.getElementById("jd").files[0]);
+  let resumeFiles = document.getElementById("resumes").files;
+  for (let i = 0; i < resumeFiles.length; i++) {
+    formData.append("resumes", resumeFiles[i]);
+  }
+
+  const res = await fetch("http://localhost:8000/score-multiple", {
+    method: "POST",
+    body: formData,
+  });
+
+  const data = await res.json();
+
+  const tbody = document.getElementById("resultsBody");
+  tbody.innerHTML = ""; // clear old rows
+  data.forEach((r) => {
+  const row = document.createElement("tr");
+  row.innerHTML = `
+    <td>${r.number}</td>
+    <td>${r.filename}</td>
+    <td>${r.name}</td>
+    <td>${r.contact}</td>
+    <td>${r.score}</td>
+    <td>
+    <span class="short-reason">${getShortReason(r.explanation)}</span>
+    <span class="full-reason" style="display: none;">${r.explanation.replace(/\n/g, '<br>')}</span>
+    <button class="view-more-btn" onclick="toggleReason(this)">View More</button>
+    </td>
+
+  `;
+  tbody.appendChild(row);
+});
+document.getElementById("resultsTable").style.display = "table";
+document.getElementById("resultsTable").scrollIntoView({ behavior: 'smooth' });
+
+}
+function getShortReason(text) {
+  const words = text.split(/\s+/);
+  const first20 = words.slice(0, 20).join(" ");
+  return first20 + (words.length > 20 ? "..." : "");
+}
+
+function toggleReason(button) {
+  const shortReason = button.parentElement.querySelector(".short-reason");
+  const fullReason = button.parentElement.querySelector(".full-reason");
+
+  const isExpanded = fullReason.style.display === "inline";
+
+  shortReason.style.display = isExpanded ? "inline" : "none";
+  fullReason.style.display = isExpanded ? "none" : "inline";
+  button.textContent = isExpanded ? "View More" : "View Less";
+}
+
+async function fetchScores() {
+      const res = await fetch("http://localhost:8000/resumes");
+      const resumes = await res.json();
+      
+}
+
+function displayResults(results) {
+      const tbody = document.getElementById("resultsBody");
+      tbody.innerHTML = ""; // clear old results
+
+      results.forEach(({ number, filename, score, explanation }) => {
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+          <td>${number}</td>
+          <td>${filename}</td>
+          <td>${r.name}</td>
+          <td>${r.contact}</td>
+          <td>${score.toFixed(2)}</td>
+          <td>${explanation}</td>
+        `;
+
+        tbody.appendChild(row);
+      });
+}
+
+
+</script>
+</head>
+
+<body>
+
+  <div class="upload-container">
+  <label for="jobName"> Job Name</label>
+  <input
+    type="text"
+    id="jobname"
+    name="Job Name"
+    placeholder="Enter Job Name"
+    required/> 
+  <label for="jd" id="jd-label" class="file-label">Upload Job Description</label>
+  <input type="file" id="jd" />
+
+  <label for="resumes" id="resumes-label" class="file-label">Upload Resumes</label>
+  <input type="file" id="resumes" multiple />
+
+  <button onclick="uploadFiles()">View Scores</button>
+  </div>
+
+  <table id="resultsTable" border="1" style="border-collapse: collapse;">
+  <thead>
+  <tr>
+    <th>#</th>
+    <th>Filename</th>
+    <th>Name</th>
+    <th>Contact Info</th>
+    <th>Score (%)</th>
+    <th>Reason</th>
+  </tr>
+</thead>
+  <tbody id="resultsBody"></tbody>
+</table>
+
+</body>
