@@ -47,7 +47,7 @@ const user_id=params.get("user_id");
  let selectedJob = null;
 
 document.getElementById("editJobsBtn").addEventListener("click", async () => {
-  const res = await fetch(`http://localhost:8000/user-jobs?user_id=${user_id}`);
+  const res = await fetch(`/user-jobs?user_id=${user_id}`);
   const jobs = await res.json();
 
   if (jobs.length === 0) {
@@ -82,7 +82,7 @@ document.getElementById("editJobsBtn").addEventListener("click", async () => {
 document.getElementById("renameBtn").addEventListener("click", async () => {
   const newName = prompt("Enter new job name:");
   if (newName && newName.trim()) {
-    const res = await fetch(`http://localhost:8000/rename-job/${selectedJob.job_id}`, {
+    const res = await fetch(`/rename-job/${selectedJob.job_id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newName.trim())
@@ -99,7 +99,7 @@ document.getElementById("renameBtn").addEventListener("click", async () => {
 document.getElementById("deleteBtn").addEventListener("click", async () => {
   const confirmDelete = confirm(`Are you sure you want to delete "${selectedJob.job_name}"?`);
   if (confirmDelete) {
-    const res = await fetch(`http://localhost:8000/delete-job/${selectedJob.job_id}`, {
+    const res = await fetch(`/delete-job/${selectedJob.job_id}`, {
       method: "DELETE"
     });
     if (res.ok) {
@@ -112,7 +112,7 @@ document.getElementById("deleteBtn").addEventListener("click", async () => {
 });
 
 
- fetch(`http://localhost:8000/user-jobs?user_id=${user_id}`)
+ fetch(`/user-jobs?user_id=${user_id}`)
  .then(res => res.json())
   .then(jobs => {
     const container = document.getElementById("jobButtonsContainer");
@@ -185,9 +185,9 @@ document.getElementById("deleteBtn").addEventListener("click", async () => {
   
 <script>
   async function fetchUserResumes(user_id, job_id) {
-      let res = await fetch(`http://localhost:8000/resumes?user_id=${user_id}`);
+      let res = await fetch(`/user-jobs?user_id=${user_id}`);
       if (job_id != null) {
-        res = await fetch (`http://localhost:8000/resumes-by-job?user_id=${user_id}&job_id=${job_id}`);
+        res = await fetch(`/resumes-by-job?user_id=${user_id}&job_id=${job_id}`);
       }
 
       const data = await res.json();
