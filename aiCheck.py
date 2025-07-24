@@ -94,32 +94,44 @@ def extract_contact_info(text: str) -> Tuple[str, str]:
 
 
 def calculate_score(resume: str, jd: str) -> Tuple[float, str]:
-    resume_embedding = model.encode([resume])[0]
-    jd_embedding = model.encode([jd])[0]
-    
-    score = cosine_similarity([resume_embedding], [jd_embedding])[0][0]
-    
     resume_sentences = split_into_sentences(resume)
-    sentence_embeddings = model.encode(resume_sentences)
-    similarities = cosine_similarity(sentence_embeddings, [jd_embedding]).flatten()
+    jd_sentences = split_into_sentences(jd)
 
-    top_indices = similarities.argsort()[::-1][:5]
-    top_sentences = [resume_sentences[i] for i in top_indices]
+    if not resume_sentences or not jd_sentences:
+        return 0.0, "Could not extract meaningful sentences from resume or job description."
 
-    if top_sentences:
-        explanation = (
-            f"The resume has a {round(score * 100, 2)}% semantic similarity to the job description.\n\n"
-            f"Top-matching sentences from the resume:\n"
-            + "\n- " + "\n- ".join(top_sentences)
-        )
-    else:
-        explanation = (
-            f"The resume has a {round(score * 100, 2)}% semantic similarity to the job description, "
-            f"but we couldn't find clear sentence-level matches."
-        )
+    # Encode all at once (faster)
+    resume_embeddings = model.encode(resume_sentences)
+    jd_embeddings = model.encode(jd_sentences)
 
-    
-    return score, explanation
+    # For each JD sentence, find best matching resume sentence
+    match_scores = []
+    matched_sentences = []
+
+    for i, jd_emb in enumerate(jd_embeddings):
+        similarities = cosine_similarity([jd_emb], resume_embeddings)[0]
+        best_score = max(similarities)
+        match_scores.append(best_score)
+
+        best_idx = similarities.argmax()
+        matched_sentences.append((jd_sentences[i], resume_sentences[best_idx], best_score))
+
+    # Calculate final score (average of top matches)
+    final_score = sum(match_scores) / len(match_scores)
+
+    # Create explanation with best matches
+    top_matches = sorted(matched_sentences, key=lambda x: x[2], reverse=True)[:5]
+    explanation_lines = [
+        f"JD: {jd_line}\nResume Match: {res_line} (Score: {round(score * 100, 1)}%)"
+        for jd_line, res_line, score in top_matches
+    ]
+    explanation = (
+        f"The resume has a {round(final_score * 100, 2)}% alignment with the job description based on semantic similarity.\n\n"
+        "Top Matches:\n" + "\n\n".join(explanation_lines)
+    )
+
+    return final_score, explanation
+
 
 #login credentials
 @app.post("/login")
